@@ -515,9 +515,6 @@ module core_top (
   reg vidout_vs;
   reg vidout_hs, vidout_hs_1;
 
-  reg [9:0] square_x = 'd135;
-  reg [9:0] square_y = 'd95;
-
   // Stripe logic
   wire [9:0] stripe_status;
   assign stripe_status = (frame_count+x_count+y_count)%12;
