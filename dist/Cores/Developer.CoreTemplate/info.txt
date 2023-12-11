@@ -2,4 +2,4 @@ Example Core - A440
 
 This is a test core showing animated stripes and playing an A440 tone.
 
-Written by Andi Mcc based on agg23 template repo
+Written by Andi Mcc based on agg23 template repo.

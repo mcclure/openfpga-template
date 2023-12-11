@@ -5,4 +5,4 @@ src/sim/work/
 src/sim/*.hex
 src/sim/*.mem
 src/sim/*.bin
-/scratch
+/scratch/
