@@ -22,6 +22,12 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+// comment out for this example
+
+module sound_i2s;
+endmodule
+
+/*
 // A very simple audio i2s bridge to APF, based on their example code
 module sound_i2s #(
     parameter CHANNEL_WIDTH = 15,
@@ -58,7 +64,7 @@ module sound_i2s #(
   // generate SCLK = 3.072mhz by dividing MCLK by 4
   reg [1:0] aud_mclk_divider;
   reg prev_audio_mclk;
-  wire audgen_sclk = aud_mclk_divider[1]  /* synthesis keep*/;
+  wire audgen_sclk = aud_mclk_divider[1]; // synthesis keep
 
   always @(posedge clk_74a) begin
     if (audio_mclk && ~prev_audio_mclk) begin
@@ -170,3 +176,4 @@ module sound_i2s #(
     end
   end
 endmodule
+*/

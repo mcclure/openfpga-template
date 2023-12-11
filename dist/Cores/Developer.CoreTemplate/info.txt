@@ -1,3 +1,5 @@
-Example Core - Core Template
+Example Core - A440
 
-This is a template for a core containing all of the core definition JSON files and FPGA starter code.
+This is a test core showing animated stripes and playing an A440 tone.
+
+Written by Andi Mcc based on agg23 template repo
