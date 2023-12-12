@@ -1,7 +1,7 @@
 # Core Template
 This is a template repository for a core which contains all of the core definition JSON files and FPGA starter code.
 
-It has been modified by agg23 to clean up the structure and add utility files, and by andi mcc to play a ~440 hz tone.
+It has been modified by agg23 to clean up the structure and add utility files, and by andi mcc to display a "screen test" image.
 
 # Build
 
@@ -25,9 +25,19 @@ rsync -avhi dist/ /media/path/to/usbmount/ && sync
 
 # License
 
-Andi McClure considers her additions to this branch trivial and non-copyrightable. For the avoidance of doubt, she releases these additions under the [Creative Commons Zero](https://creativecommons.org/publicdomain/zero/1.0/legalcode) license (public domain).
+Modifications in this directory by Andi McClure (mostly in core_top.sv) are available under the MIT license:
 
-Agg23's additions to the project are in standalone files, which have their licenses stated at the top.
+> Copyright (c) 2023 Andi McClure
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+If this license is too restrictive for some reason, feel free to contact me.
+
+Agg23's additions to the project are in standalone files, which have their licenses stated at the top. As of this commit, none of these additions are linked in.
 
 Analogue's original legal notice for the underlying base project is reproduced below: 
 

@@ -515,9 +515,9 @@ module core_top (
   reg vidout_vs;
   reg vidout_hs, vidout_hs_1;
 
-  // Stripe logic
-  wire [9:0] stripe_status;
-  assign stripe_status = (frame_count+x_count+y_count)%12;
+  // Test-pattern logic
+  enum bit[1:0] { PATTERN_PLAIN, PATTERN_V, PATTERN_H, PATTERN_CHECKER } pattern_current;
+  reg pattern_local_invert, pattern_quad_invert;
 
   always @(posedge clk_core_12288 or negedge reset_n) begin
 
@@ -525,6 +525,9 @@ module core_top (
 
       x_count <= 0;
       y_count <= 0;
+      pattern_current <= PATTERN_CHECKER;
+      pattern_local_invert <= 0;
+      pattern_quad_invert <= 0;
 
     end else begin
       vidout_de <= 0;
@@ -570,18 +573,34 @@ module core_top (
           // data enable. this is the active region of the line
           vidout_de <= 1;
 
-          if (stripe_status < 4) begin
+          if (y_count == VID_V_BPORCH) begin // TOP (red)
             vidout_rgb[23:16] <= 8'd255;
             vidout_rgb[15:8] <= 8'd0;
             vidout_rgb[7:0] <= 8'd0;
-          end else if (stripe_status < 8) begin
+          end else if (y_count == VID_V_ACTIVE + VID_V_BPORCH - 1) begin // BOTTOM (blue)
+            vidout_rgb[23:16] <= 8'd0;
+            vidout_rgb[15:8] <= 8'd0;
+            vidout_rgb[7:0] <= 8'd255; 
+          end else if (x_count == VID_H_BPORCH) begin // LEFT (green)
             vidout_rgb[23:16] <= 8'd0;
             vidout_rgb[15:8] <= 8'd255;
             vidout_rgb[7:0] <= 8'd0;
-          end else begin
-            vidout_rgb[23:16] <= 8'd0;
-            vidout_rgb[15:8] <= 8'd0;
-            vidout_rgb[7:0] <= 8'd255;
+          end else if (x_count == VID_H_ACTIVE + VID_H_BPORCH - 1) begin // RIGHT (yellow)
+            vidout_rgb[23:16] <= 8'd255;
+            vidout_rgb[15:8] <= 8'd255;
+            vidout_rgb[7:0] <= 8'd128;
+          end else begin // "CURRENT"
+            if ( (pattern_current == PATTERN_H && (x_count&1))
+               ||(pattern_current == PATTERN_V && (y_count&1))
+               ||(pattern_current == PATTERN_CHECKER && ((x_count&1)^(y_count&1)))) begin
+              vidout_rgb[23:16] <= 8'd255;
+              vidout_rgb[15:8] <= 8'd255;
+              vidout_rgb[7:0] <= 8'd255;
+            end else begin
+              vidout_rgb[23:16] <= 8'ha0;
+              vidout_rgb[15:8] <= 8'd0;
+              vidout_rgb[7:0] <= 8'd128;
+            end
           end
         end
       end
