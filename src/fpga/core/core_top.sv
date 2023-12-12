@@ -510,7 +510,7 @@ module core_top (
   reg [9:0] x_count;
   reg [9:0] y_count;
 
-  reg [9:0] vid_h_active;
+  reg [9:0] vid_h_active, vid_h_active_next;
 
   wire [9:0] visible_x = x_count - VID_H_BPORCH;
   wire [9:0] visible_y = y_count - VID_V_BPORCH;
@@ -534,6 +534,7 @@ module core_top (
       x_count <= 0;
       y_count <= 0;
       vid_h_active <= VID_H_ACTIVE_1;
+      vid_h_active_next <= VID_H_ACTIVE_1;
       osnotify_docked_last <= 0;
 
       pattern_current <= PATTERN_CHECKER;
@@ -556,6 +557,7 @@ module core_top (
 
         y_count <= y_count + 1'b1;
         if (y_count == VID_V_TOTAL - 1) begin
+          vid_h_active <= vid_h_active_next;
           y_count <= 0;
         end
       end
@@ -578,14 +580,14 @@ module core_top (
       // inactive screen areas are black
       vidout_rgb <= 24'h0;
       // generate active video
-      if (x_count == VID_H_ACTIVE_LARGER + VID_H_BPORCH && y_count == VID_V_ACTIVE + VID_V_BPORCH - 1) begin
+      if (x_count == vid_h_active + VID_H_BPORCH && y_count == VID_V_ACTIVE + VID_V_BPORCH - 1) begin
         if (osnotify_docked_last != osnotify_docked) begin
           osnotify_docked_last <= osnotify_docked;
           if (osnotify_docked) begin
-            vid_h_active <= VID_H_ACTIVE_2;
+            vid_h_active_next <= VID_H_ACTIVE_2;
             vidout_rgb[23:13] <= 'd1; // slot index 1
           end else begin
-            vid_h_active <= VID_H_ACTIVE_1;
+            vid_h_active_next <= VID_H_ACTIVE_1;
             vidout_rgb[23:13] <= 'd0; // slot index 0
           end
           vidout_rgb[12:3] <= 'd0;  // must be zero
