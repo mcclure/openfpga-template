@@ -13,5 +13,9 @@ There are some debug controls:
    D-pad UP: Force grid to white
    D-pad DOWN: Force grid to black
    Select: Simulate "swapping" the dock. If docked, it will act like it is not docked. If undocked (or running firmware 1.1) it will act like it is docked.
+   Y: Switch checkerboard to plain magenta
+   X: Switch checkerboard to vertical lines
+   A: Switch checkerboard to horizontal lines
+   B: Switch checkerboard to checkerboard
 
 Written by Andi Mcc based on the agg23 template repo.

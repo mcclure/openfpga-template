@@ -606,6 +606,17 @@ module core_top (
           vidout_rgb[2:0] <= 3'd0;  // Set Scaler Slot
         end
 
+        // Use face buttons to switch pattern
+        if (cont1_key[4]) begin // 4 == face_a
+          pattern_current <= PATTERN_H;
+        end else if (cont1_key[5]) begin // 5 == face_b
+          pattern_current <= PATTERN_CHECKER;
+        end else if (cont1_key[6]) begin // 6 == face_x
+          pattern_current <= PATTERN_V;
+        end else if (cont1_key[7]) begin // 7 == face_y
+          pattern_current <= PATTERN_PLAIN;
+        end
+
         // Always evaluate controls relative to the last endline cycle
         cont1_key_last <= cont1_key;
 
@@ -633,8 +644,8 @@ module core_top (
             vidout_rgb[15:8] <= 8'd255;
             vidout_rgb[7:0] <= 8'd128;
           end else begin // "CURRENT"
-            if ( (pattern_current == PATTERN_H && (x_count&1))
-               ||(pattern_current == PATTERN_V && (y_count&1))
+            if ( (pattern_current == PATTERN_H && (y_count&1))
+               ||(pattern_current == PATTERN_V && (x_count&1))
                ||(pattern_current == PATTERN_CHECKER && ((x_count&1)^(y_count&1)))) begin
               // Up for white, down for black;
               // default white when drawing a "device" frame and black when drawing a "dock" frame
