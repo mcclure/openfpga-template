@@ -1,7 +1,7 @@
 # Core Template
 This is a template repository for a core which contains all of the core definition JSON files and FPGA starter code.
 
-It has been modified by agg23 to clean up the structure and add utility files, and by andi mcc to display a "screen test" image.
+It has been modified by agg23 to clean up the structure and add utility files, and by andi mcc to display a "screen test" image. On firmware 1.2, this "screen test" will fit itself exactly to the size of the screen in both docked and handheld mode. See [info.txt](dist/Cores/Developer.CoreTemplate/info.txt).
 
 # Build
 
