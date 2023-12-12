@@ -371,6 +371,7 @@ module core_top (
   wire savestate_load_err;
 
   wire osnotify_inmenu;
+  wire osnotify_docked;
 
   // bridge target commands
   // synchronous to clk_74a
@@ -429,6 +430,7 @@ module core_top (
       .savestate_load_err (savestate_load_err),
 
       .osnotify_inmenu(osnotify_inmenu),
+      .osnotify_docked(osnotify_docked),
 
       .datatable_addr(datatable_addr),
       .datatable_wren(datatable_wren),
@@ -593,9 +595,15 @@ module core_top (
             if ( (pattern_current == PATTERN_H && (x_count&1))
                ||(pattern_current == PATTERN_V && (y_count&1))
                ||(pattern_current == PATTERN_CHECKER && ((x_count&1)^(y_count&1)))) begin
-              vidout_rgb[23:16] <= 8'd255;
-              vidout_rgb[15:8] <= 8'd255;
-              vidout_rgb[7:0] <= 8'd255;
+              if (osnotify_docked) begin
+                vidout_rgb[23:16] <= 8'd0;
+                vidout_rgb[15:8] <= 8'd0;
+                vidout_rgb[7:0] <= 8'd0;
+              end else begin
+                vidout_rgb[23:16] <= 8'd255;
+                vidout_rgb[15:8] <= 8'd255;
+                vidout_rgb[7:0] <= 8'd255;
+              end
             end else begin
               vidout_rgb[23:16] <= 8'ha0;
               vidout_rgb[15:8] <= 8'd0;
