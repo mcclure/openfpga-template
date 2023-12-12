@@ -518,6 +518,10 @@ module core_top (
   // osnotify_docked value at time of last final-endline cycle
   reg osnotify_docked_last;
 
+  // For debugging, select "inverts" the current osnotify_docked value.
+  wire osnotify_docked_effective;
+  assign osnotify_docked_effective = osnotify_docked ^ cont1_key[14]; // 14 == face_select
+
   reg [23:0] vidout_rgb;
   reg vidout_de, vidout_de_1;
   reg vidout_skip;
@@ -527,6 +531,7 @@ module core_top (
   // Test-pattern logic
   enum bit[1:0] { PATTERN_PLAIN, PATTERN_V, PATTERN_H, PATTERN_CHECKER } pattern_current;
   reg pattern_local_invert, pattern_quad_invert;
+  reg [15:0] cont1_key_last;
 
   always @(posedge clk_core_12288 or negedge reset_n) begin
 
@@ -539,6 +544,7 @@ module core_top (
       vid_h_active <= VID_H_ACTIVE_0;
       vid_h_active_next <= VID_H_ACTIVE_0;
       osnotify_docked_last <= 0;
+      cont1_key_last <= 0;
 
       pattern_current <= PATTERN_CHECKER;
       pattern_local_invert <= 0;
@@ -587,9 +593,9 @@ module core_top (
       // Send "endline" color-word on the final line and after the final pixel
       if (x_count == vid_h_active + VID_H_BPORCH && y_count == VID_V_ACTIVE + VID_V_BPORCH - 1) begin
        // (If the screen resolution is to change, that is)
-       if (osnotify_docked_last != osnotify_docked) begin
-          osnotify_docked_last <= osnotify_docked;
-          if (osnotify_docked) begin
+       if (osnotify_docked_last != osnotify_docked_effective) begin
+          osnotify_docked_last <= osnotify_docked_effective;
+          if (osnotify_docked_effective) begin
             vid_h_active_next <= VID_H_ACTIVE_1;
             vidout_rgb[23:13] <= 'd1; // slot index 1
           end else begin
@@ -599,6 +605,9 @@ module core_top (
           vidout_rgb[12:3] <= 'd0;  // must be zero
           vidout_rgb[2:0] <= 3'd0;  // Set Scaler Slot
         end
+
+        // Always evaluate controls relative to the last endline cycle
+        cont1_key_last <= cont1_key;
 
       // generate active video
       end else if (x_count >= VID_H_BPORCH && x_count < vid_h_active + VID_H_BPORCH) begin
@@ -629,7 +638,7 @@ module core_top (
                ||(pattern_current == PATTERN_CHECKER && ((x_count&1)^(y_count&1)))) begin
               // Up for white, down for black;
               // default white when drawing a "device" frame and black when drawing a "dock" frame
-              if (cont1_key[1] || (osnotify_docked_last && !cont1_key[0])) begin // 0 == dpad_down, 1==dpad_up
+              if (cont1_key_last[1] || (osnotify_docked_last && !cont1_key_last[0])) begin // 0 == dpad_down, 1==dpad_up
                 vidout_rgb[23:16] <= 8'd0;
                 vidout_rgb[15:8] <= 8'd0;
                 vidout_rgb[7:0] <= 8'd0;
@@ -659,6 +668,8 @@ module core_top (
   assign audio_mclk = audgen_mclk;
   assign audio_dac = audgen_dac;
   assign audio_lrck = audgen_lrck;
+
+  wire [8:0] square_alternate;
 
   // generate MCLK = 12.288mhz with fractional accumulator
       reg         [21:0]  audgen_accum;
@@ -699,7 +710,14 @@ module core_top (
       if(audgen_lrck_cnt == 31) begin
           // switch channels
           audgen_lrck <= ~audgen_lrck;
-          if (audgen_osc < 109) begin
+
+          if (osnotify_docked_last) begin // When we believe we're docked, drop by 1 octave
+            square_alternate <= 109*2;
+          end else begin
+            square_alternate <= 109;
+          end
+
+          if (audgen_osc < square_alternate) begin
             audgen_osc <= audgen_osc + 1;
           end else begin
             audgen_osc = 1; // note audgen_osc is currently EQUAL to 109

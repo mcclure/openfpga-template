@@ -7,4 +7,11 @@ Bottom: Blue
 Left: Green
 Right: Yellow
 
-Written by Andi Mcc based on agg23 template repo.
+In the center, you should see either a grid of white and magenta pixels (when handheld) or a grid of black and magenta pixels (when docked). The app should fill the screen completely in both handheld and docked modes (note: dock detection requires firmware 1.2).
+
+There are some debug controls:
+   D-pad UP: Force grid to white
+   D-pad DOWN: Force grid to black
+   Select: Simulate "swapping" the dock. If docked, it will act like it is not docked. If undocked (or running firmware 1.1) it will act like it is docked.
+
+Written by Andi Mcc based on the agg23 template repo.
