@@ -627,7 +627,9 @@ module core_top (
             if ( (pattern_current == PATTERN_H && (x_count&1))
                ||(pattern_current == PATTERN_V && (y_count&1))
                ||(pattern_current == PATTERN_CHECKER && ((x_count&1)^(y_count&1)))) begin
-              if (osnotify_docked) begin
+              // Up for white, down for black;
+              // default white when drawing a "device" frame and black when drawing a "dock" frame
+              if (cont1_key[1] || (osnotify_docked_last && !cont1_key[0])) begin // 0 == dpad_down, 1==dpad_up
                 vidout_rgb[23:16] <= 8'd0;
                 vidout_rgb[15:8] <= 8'd0;
                 vidout_rgb[7:0] <= 8'd0;
