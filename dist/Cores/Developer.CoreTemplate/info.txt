@@ -1,5 +1,10 @@
 Example Core - A440
 
-This is a test core showing animated stripes and playing an A440 tone.
+This is a test core showing a test pattern and playing an A440 tone. You should see a grid of pixels, and these colors at the edges:
+
+Top: Red
+Bottom: Blue
+Left: Green
+Right: Yellow
 
 Written by Andi Mcc based on agg23 template repo.
