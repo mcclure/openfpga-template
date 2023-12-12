@@ -500,9 +500,8 @@ module core_top (
   localparam VID_V_ACTIVE = 'd180;
   localparam VID_V_TOTAL = 'd512;
   localparam VID_H_BPORCH = 'd10;
-  localparam VID_H_ACTIVE_1 = 'd200;
-  localparam VID_H_ACTIVE_2 = 'd320;
-  localparam VID_H_ACTIVE_LARGER = VID_H_ACTIVE_2;
+  localparam VID_H_ACTIVE_0 = 'd200; // video.json slot 0 (10:9)
+  localparam VID_H_ACTIVE_1 = 'd320; // video.json slot 1 (16:9)
   localparam VID_H_TOTAL = 'd400;
 
   reg [9:0] frame_count;
@@ -510,11 +509,13 @@ module core_top (
   reg [9:0] x_count;
   reg [9:0] y_count;
 
+  // Current width of screen, and width of screen to take on next frame
   reg [9:0] vid_h_active, vid_h_active_next;
 
   wire [9:0] visible_x = x_count - VID_H_BPORCH;
   wire [9:0] visible_y = y_count - VID_V_BPORCH;
 
+  // osnotify_docked value at time of last final-endline cycle
   reg osnotify_docked_last;
 
   reg [23:0] vidout_rgb;
@@ -533,8 +534,10 @@ module core_top (
 
       x_count <= 0;
       y_count <= 0;
-      vid_h_active <= VID_H_ACTIVE_1;
-      vid_h_active_next <= VID_H_ACTIVE_1;
+
+      // Assume start undocked
+      vid_h_active <= VID_H_ACTIVE_0;
+      vid_h_active_next <= VID_H_ACTIVE_0;
       osnotify_docked_last <= 0;
 
       pattern_current <= PATTERN_CHECKER;
@@ -557,6 +560,7 @@ module core_top (
 
         y_count <= y_count + 1'b1;
         if (y_count == VID_V_TOTAL - 1) begin
+          // Switch vid_h_active value at end of VID_V_TOTAL
           vid_h_active <= vid_h_active_next;
           y_count <= 0;
         end
@@ -579,20 +583,24 @@ module core_top (
 
       // inactive screen areas are black
       vidout_rgb <= 24'h0;
-      // generate active video
+
+      // Send "endline" color-word on the final line and after the final pixel
       if (x_count == vid_h_active + VID_H_BPORCH && y_count == VID_V_ACTIVE + VID_V_BPORCH - 1) begin
-        if (osnotify_docked_last != osnotify_docked) begin
+       // (If the screen resolution is to change, that is)
+       if (osnotify_docked_last != osnotify_docked) begin
           osnotify_docked_last <= osnotify_docked;
           if (osnotify_docked) begin
-            vid_h_active_next <= VID_H_ACTIVE_2;
+            vid_h_active_next <= VID_H_ACTIVE_1;
             vidout_rgb[23:13] <= 'd1; // slot index 1
           end else begin
-            vid_h_active_next <= VID_H_ACTIVE_1;
+            vid_h_active_next <= VID_H_ACTIVE_0;
             vidout_rgb[23:13] <= 'd0; // slot index 0
           end
           vidout_rgb[12:3] <= 'd0;  // must be zero
           vidout_rgb[2:0] <= 3'd0;  // Set Scaler Slot
         end
+
+      // generate active video
       end else if (x_count >= VID_H_BPORCH && x_count < vid_h_active + VID_H_BPORCH) begin
 
         if (y_count >= VID_V_BPORCH && y_count < VID_V_ACTIVE + VID_V_BPORCH) begin
