@@ -592,19 +592,17 @@ module core_top (
 
       // Send "endline" color-word on the final line and after the final pixel
       if (x_count == vid_h_active + VID_H_BPORCH && y_count == VID_V_ACTIVE + VID_V_BPORCH - 1) begin
-       // (If the screen resolution is to change, that is)
-       if (osnotify_docked_last != osnotify_docked_effective) begin
-          osnotify_docked_last <= osnotify_docked_effective;
-          if (osnotify_docked_effective) begin
-            vid_h_active_next <= VID_H_ACTIVE_1;
-            vidout_rgb[23:13] <= 'd1; // slot index 1
-          end else begin
-            vid_h_active_next <= VID_H_ACTIVE_0;
-            vidout_rgb[23:13] <= 'd0; // slot index 0
-          end
-          vidout_rgb[12:3] <= 'd0;  // must be zero
-          vidout_rgb[2:0] <= 3'd0;  // Set Scaler Slot
+        // Send it every time ("0" is a valid endline, so "not sending" just switches to preset 0)
+        osnotify_docked_last <= osnotify_docked_effective;
+        if (osnotify_docked_effective) begin
+          vid_h_active_next <= VID_H_ACTIVE_1;
+          vidout_rgb[23:13] <= 'd1; // slot index 1
+        end else begin
+          vid_h_active_next <= VID_H_ACTIVE_0;
+          vidout_rgb[23:13] <= 'd0; // slot index 0
         end
+        vidout_rgb[12:3] <= 'd0;  // must be zero
+        vidout_rgb[2:0] <= 3'd0;  // Set Scaler Slot
 
         // Use face buttons to switch pattern
         if (cont1_key[4]) begin // 4 == face_a
