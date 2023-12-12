@@ -14,7 +14,7 @@ Although build invocations will vary from machine to machine, here is a sample c
 Once these steps have been run, the `dist/` directory can be zipped to create a [installable zip](https://www.analogue.co/developer/docs/packaging-a-core#naming-of-the-.zip-file), as in:
 
 ```
-cd dist && zip -r ../Developer.CoreTemplate_1.1.0_2023-09-11.zip .
+cd dist && zip -r ../Developer.CoreTemplate_1.2.0_2023-12-12.zip .
 ```
 
 Or copied to a mounted SD card:
