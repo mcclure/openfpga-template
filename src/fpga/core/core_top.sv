@@ -497,10 +497,12 @@ module core_top (
   assign video_hs = vidout_hs;
 
   localparam VID_V_BPORCH = 'd10;
-  localparam VID_V_ACTIVE = 'd240;
+  localparam VID_V_ACTIVE = 'd180;
   localparam VID_V_TOTAL = 'd512;
   localparam VID_H_BPORCH = 'd10;
-  localparam VID_H_ACTIVE = 'd320;
+  localparam VID_H_ACTIVE_1 = 'd200;
+  localparam VID_H_ACTIVE_2 = 'd320;
+  localparam VID_H_ACTIVE_LARGER = VID_H_ACTIVE_2;
   localparam VID_H_TOTAL = 'd400;
 
   reg [9:0] frame_count;
@@ -508,8 +510,12 @@ module core_top (
   reg [9:0] x_count;
   reg [9:0] y_count;
 
+  reg [9:0] vid_h_active;
+
   wire [9:0] visible_x = x_count - VID_H_BPORCH;
   wire [9:0] visible_y = y_count - VID_V_BPORCH;
+
+  reg osnotify_docked_last;
 
   reg [23:0] vidout_rgb;
   reg vidout_de, vidout_de_1;
@@ -527,6 +533,9 @@ module core_top (
 
       x_count <= 0;
       y_count <= 0;
+      vid_h_active <= VID_H_ACTIVE_1;
+      osnotify_docked_last <= 0;
+
       pattern_current <= PATTERN_CHECKER;
       pattern_local_invert <= 0;
       pattern_quad_invert <= 0;
@@ -569,7 +578,20 @@ module core_top (
       // inactive screen areas are black
       vidout_rgb <= 24'h0;
       // generate active video
-      if (x_count >= VID_H_BPORCH && x_count < VID_H_ACTIVE + VID_H_BPORCH) begin
+      if (x_count == VID_H_ACTIVE_LARGER + VID_H_BPORCH && y_count == VID_V_ACTIVE + VID_V_BPORCH - 1) begin
+        if (osnotify_docked_last != osnotify_docked) begin
+          osnotify_docked_last <= osnotify_docked;
+          if (osnotify_docked) begin
+            vid_h_active <= VID_H_ACTIVE_2;
+            vidout_rgb[23:13] <= 'd1; // slot index 1
+          end else begin
+            vid_h_active <= VID_H_ACTIVE_1;
+            vidout_rgb[23:13] <= 'd0; // slot index 0
+          end
+          vidout_rgb[12:3] <= 'd0;  // must be zero
+          vidout_rgb[2:0] <= 3'd0;  // Set Scaler Slot
+        end
+      end else if (x_count >= VID_H_BPORCH && x_count < vid_h_active + VID_H_BPORCH) begin
 
         if (y_count >= VID_V_BPORCH && y_count < VID_V_ACTIVE + VID_V_BPORCH) begin
           // data enable. this is the active region of the line
@@ -587,7 +609,7 @@ module core_top (
             vidout_rgb[23:16] <= 8'd0;
             vidout_rgb[15:8] <= 8'd255;
             vidout_rgb[7:0] <= 8'd0;
-          end else if (x_count == VID_H_ACTIVE + VID_H_BPORCH - 1) begin // RIGHT (yellow)
+          end else if (x_count == vid_h_active + VID_H_BPORCH - 1) begin // RIGHT (yellow)
             vidout_rgb[23:16] <= 8'd255;
             vidout_rgb[15:8] <= 8'd255;
             vidout_rgb[7:0] <= 8'd128;
