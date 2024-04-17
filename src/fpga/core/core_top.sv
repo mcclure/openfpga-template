@@ -590,33 +590,47 @@ module core_top (
       // inactive screen areas are black
       vidout_rgb <= 24'h0;
 
-      // Send "endline" color-word on the final line and after the final pixel
-      if (x_count == vid_h_active + VID_H_BPORCH && y_count == VID_V_ACTIVE + VID_V_BPORCH - 1) begin
-        // Send it every time ("0" is a valid endline, so "not sending" just switches to preset 0)
-        osnotify_docked_last <= osnotify_docked_effective;
-        if (osnotify_docked_effective) begin
-          vid_h_active_next <= VID_H_ACTIVE_1;
-          vidout_rgb[23:13] <= 'd1; // slot index 1
-        end else begin
-          vid_h_active_next <= VID_H_ACTIVE_0;
-          vidout_rgb[23:13] <= 'd0; // slot index 0
-        end
-        vidout_rgb[12:3] <= 'd0;  // must be zero
-        vidout_rgb[2:0] <= 3'd0;  // Set Scaler Slot
+      // Send "endline" color-word on final pixel of each line
+      if (x_count == vid_h_active + VID_H_BPORCH) begin
+        // Only send on de lines
+        if (y_count >= VID_V_BPORCH && y_count < VID_V_ACTIVE + VID_V_BPORCH) begin
+          // Send scaler-slot command as the endline word. (We must do this on *every* line, because
+          // otherwise the 0x0 we send in its place will be interpreted as a scaler-slot command.)
+          if (osnotify_docked_last) begin
+            vidout_rgb[23:13] <= 'd1; // slot index 1
+          end else begin
+            vidout_rgb[23:13] <= 'd0; // slot index 0
+          end
+          vidout_rgb[12:3] <= 'd0;  // must be zero
+          vidout_rgb[2:0] <= 3'd0;  // Set Scaler Slot
 
-        // Use face buttons to switch pattern
-        if (cont1_key[4]) begin // 4 == face_a
-          pattern_current <= PATTERN_H;
-        end else if (cont1_key[5]) begin // 5 == face_b
-          pattern_current <= PATTERN_CHECKER;
-        end else if (cont1_key[6]) begin // 6 == face_x
-          pattern_current <= PATTERN_V;
-        end else if (cont1_key[7]) begin // 7 == face_y
-          pattern_current <= PATTERN_PLAIN;
-        end
+          // Only change next-frame values on final line
+          if (y_count == VID_V_ACTIVE + VID_V_BPORCH - 1) begin
+            // Set next-frame docked value
+            osnotify_docked_last <= osnotify_docked_effective;
 
-        // Always evaluate controls relative to the last endline cycle
-        cont1_key_last <= cont1_key;
+            // Set next frame height
+            if (osnotify_docked_effective) begin
+              vid_h_active_next <= VID_H_ACTIVE_1;
+            end else begin
+              vid_h_active_next <= VID_H_ACTIVE_0;
+            end
+
+            // Use face buttons to switch pattern (on next frame)
+            if (cont1_key[4]) begin // 4 == face_a
+              pattern_current <= PATTERN_H;
+            end else if (cont1_key[5]) begin // 5 == face_b
+              pattern_current <= PATTERN_CHECKER;
+            end else if (cont1_key[6]) begin // 6 == face_x
+              pattern_current <= PATTERN_V;
+            end else if (cont1_key[7]) begin // 7 == face_y
+              pattern_current <= PATTERN_PLAIN;
+            end
+
+            // Always evaluate controls relative to the last endline cycle
+            cont1_key_last <= cont1_key;
+          end
+        end
 
       // generate active video
       end else if (x_count >= VID_H_BPORCH && x_count < vid_h_active + VID_H_BPORCH) begin
