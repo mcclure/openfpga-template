@@ -521,6 +521,10 @@ module core_top (
   // For debugging, select "inverts" the current osnotify_docked value.
   wire osnotify_docked_effective;
   assign osnotify_docked_effective = osnotify_docked ^ cont1_key[14]; // 14 == face_select
+  wire filter_effective;
+  assign filter_effective = cont1_key[1]; // 1 == dpad_down
+  wire lowpitch_effective;
+  assign lowpitch_effective = cont1_key[2]; // 2 == dpad_left
 
   reg [23:0] vidout_rgb;
   reg vidout_de, vidout_de_1;
@@ -661,19 +665,25 @@ module core_top (
                ||(pattern_current == PATTERN_CHECKER && ((x_count&1)^(y_count&1)))) begin
               // Up for white, down for black;
               // default white when drawing a "device" frame and black when drawing a "dock" frame
-              if (cont1_key_last[1] || (osnotify_docked_last && !cont1_key_last[0])) begin // 0 == dpad_down, 1==dpad_up
-                vidout_rgb[23:16] <= 8'd0;
-                vidout_rgb[15:8] <= 8'd0;
-                vidout_rgb[7:0] <= 8'd0;
+              if (cont1_key_last[1]) begin // 0 == dpad_down, 1==dpad_up
+                vidout_rgb[23:16] <= 8'd200;
+                vidout_rgb[15:8] <= 8'd200;
+                vidout_rgb[7:0] <= 8'd200;
               end else begin
                 vidout_rgb[23:16] <= 8'd255;
                 vidout_rgb[15:8] <= 8'd255;
                 vidout_rgb[7:0] <= 8'd255;
               end
             end else begin
-              vidout_rgb[23:16] <= 8'ha0;
-              vidout_rgb[15:8] <= 8'd0;
-              vidout_rgb[7:0] <= 8'd128;
+              if (cont1_key_last[2]) begin // 2 == dpad_left, 3==dpad_right
+                vidout_rgb[23:16] <= 8'd128;
+                vidout_rgb[15:8] <= 8'd0;
+                vidout_rgb[7:0] <= 8'd0;
+              end else begin
+                vidout_rgb[23:16] <= 8'ha0;
+                vidout_rgb[15:8] <= 8'd0;
+                vidout_rgb[7:0] <= 8'd128;
+              end
             end
           end
         end
@@ -692,7 +702,12 @@ module core_top (
   assign audio_dac = audgen_dac;
   assign audio_lrck = audgen_lrck;
 
-  wire [8:0] square_alternate;
+  parameter SQUARE_ALTERNATE_MIN     = 8'd28;
+  parameter SQUARE_ALTERNATE_MAX     = 8'd112; // 28 * 4
+  parameter SQUARE_ALTERNATE_MAX_LOW = 8'd224; // 28 * 8
+  reg [8:0] square_alternate; // 8 bits to store 224
+  reg square_alternate_dir;
+  wire [8:0] square_alternate_max;
 
   // generate MCLK = 12.288mhz with fractional accumulator
       reg         [21:0]  audgen_accum;
@@ -734,17 +749,30 @@ module core_top (
           // switch channels
           audgen_lrck <= ~audgen_lrck;
 
-          if (osnotify_docked_last) begin // When we believe we're docked, drop by 1 octave
-            square_alternate <= 109*2;
-          end else begin
-            square_alternate <= 109;
-          end
-
           if (audgen_osc < square_alternate) begin
             audgen_osc <= audgen_osc + 1;
           end else begin
             audgen_osc = 1; // note audgen_osc is currently EQUAL to 109
             audgen_high <= ~audgen_high;
+            if (audgen_high) begin // Pitch slide
+              if (lowpitch_effective) begin
+                square_alternate_max <= SQUARE_ALTERNATE_MAX_LOW;
+              end else begin
+                square_alternate_max <= SQUARE_ALTERNATE_MAX;
+              end
+
+              if (~square_alternate_dir) begin // DEFAULT TO RISING
+                square_alternate <= square_alternate + 1;
+                if (square_alternate >= square_alternate_max - 1 ) begin
+                  square_alternate_dir <= 1;
+                end
+              end else begin
+                square_alternate <= square_alternate - 1;
+                if (square_alternate <= SQUARE_ALTERNATE_MIN + 1 ) begin
+                  square_alternate_dir <= 0;
+                end
+              end
+            end
           end
       end 
   end
