@@ -25,6 +25,8 @@ rsync -avhi dist/ /media/path/to/usbmount/ && sync
 
 # License
 
+(TODO DOCUMENT IIR FILES)
+
 Modifications in this directory by Andi McClure (mostly in core_top.sv) are available under the MIT license:
 
 > Copyright (c) 2023 Andi McClure
