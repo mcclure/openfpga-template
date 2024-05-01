@@ -1,4 +1,4 @@
-<session jtag_chain="USB-Blaster [3-1]" jtag_device="@1: 5CE(BA4|FA4) (0x02B050DD)" sof_file="../output_files/ap_core.sof">
+<session jtag_chain="" jtag_device="" sof_file="../output_files/ap_core.sof">
   <display_tree gui_logging_enabled="0">
     <display_branch instance="auto_signaltap_2" log="USE_GLOBAL_TEMP" signal_set="USE_GLOBAL_TEMP" trigger="USE_GLOBAL_TEMP"/>
   </display_tree>
@@ -138,7 +138,7 @@
     </table>
   </mnemonics>
   <static_plugin_mnemonics/>
-  <instance enabled="true" entity_name="sld_signaltap" is_auto_node="yes" is_expanded="true" name="auto_signaltap_2" source_file="sld_signaltap.vhd">
+  <instance enabled="false" entity_name="sld_signaltap" is_auto_node="yes" is_expanded="true" name="auto_signaltap_2" source_file="sld_signaltap.vhd">
     <node_ip_info instance_id="2" mfg_id="110" node_id="0" version="6"/>
     <signal_set global_temp="1" is_expanded="true" name="signal_set: 2022/05/29 17:51:24  #0">
       <clock name="core_top:ic|clk_74a" polarity="posedge" tap_mode="classic"/>
@@ -1074,7 +1074,7 @@
         <trigger_in_editor/>
         <trigger_out_editor/>
       </presentation>
-      <trigger CRC="A4E1457E" attribute_mem_mode="false" gap_record="true" global_temp="1" is_expanded="true" name="trigger: 2022/05/29 17:51:24  #1" position="pre" power_up_trigger_mode="false" record_data_gap="true" segment_size="4096" storage_mode="off" storage_qualifier_disabled="no" storage_qualifier_port_is_pin="true" storage_qualifier_port_name="auto_stp_external_storage_qualifier" storage_qualifier_port_tap_mode="classic" trigger_type="circular">
+      <trigger CRC="A4E1457E" attribute_mem_mode="false" gap_record="true" global_temp="1" is_expanded="true" name="trigger: 2022/05/29 17:51:24  #1" position="pre" power_up_trigger_mode="false" record_data_gap="true" segment_size="4096" storage_mode="off" storage_qualifier_disabled="no" storage_qualifier_port_is_pin="false" storage_qualifier_port_name="auto_stp_external_storage_qualifier" storage_qualifier_port_tap_mode="classic" trigger_type="circular">
         <power_up_trigger position="pre" storage_qualifier_disabled="no"/>
         <events use_custom_flow_control="no">
           <level enabled="yes" name="condition1" type="basic">
