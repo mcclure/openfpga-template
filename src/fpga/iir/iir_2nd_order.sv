@@ -99,7 +99,7 @@ module iir_2nd_order
         end
         else begin
             counter <= counter + 1'd1;
-            if (counter == div - 1) begin
+            if (counter >= div - 1) begin
                 counter <= 0;
                 y1      <= y0;
                 y0      <= {result[(DATA_WIDTH + COEFF_WIDTH - 1)],

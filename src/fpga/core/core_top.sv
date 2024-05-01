@@ -729,6 +729,46 @@ module core_top (
       aud_mclk_divider <= aud_mclk_divider + 1'b1;
   end
 
+
+  reg iir_clk;
+  reg  [15:0] iir_playing;
+  wire [15:0] iir_in;
+  wire [15:0] iir_out;
+/*
+         input  wire         [COUNT_BITS-1:0] div,    //! Sample rate divider
+         input  wire signed [COEFF_WIDTH-1:0] A2,     //! Denominator (A) polynomial
+         input  wire signed [COEFF_WIDTH-1:0] B1, B2, //! Numerator   (B) polynomials
+         input  wire signed  [DATA_WIDTH-1:0] din,    //! Input sample
+         output wire signed  [DATA_WIDTH-1:0] dout    //! Filtered output
+*/
+
+localparam signed [17:0] A2 = -18'd36347;
+localparam signed [17:0] A3 = 18'd13047;
+localparam signed [17:0] B1 = 18'd2367;
+localparam signed [17:0] B2 = 18'd4734;
+localparam signed [17:0] B3 = 18'd2367;
+
+  iir_2nd_order(
+    .clk(iir_clk),
+    .reset(reset_n),
+    .din(iir_in),
+    .dout(iir_out),
+    .A2(A2),
+    .A3(A3),
+    .B1(B1),
+    .B2(B2),
+    .B3(B3),
+    .div(10'd1)
+  );
+
+  always @(*) begin
+    // Corresponds to
+    //    audgen_dac <= (audgen_lrck_cnt < 4) ? 1'b0 : audgen_high;
+    for(int bi=0; bi<16; bi++) begin
+      iir_in[bi] = (bi >= 12) ? 1'b0 : audgen_high;
+    end
+  end
+
   // shift out audio data as I2S 
   // 32 total bits per channel, but only 16 active bits at the start and then 16 dummy bits
   //
@@ -741,14 +781,21 @@ module core_top (
 
   always @(negedge audgen_sclk) begin
 
-      audgen_dac <= (audgen_lrck_cnt < 4) ? 1'b0 : audgen_high;
+      audgen_dac <= iir_playing[15]; // Rotate data register
+      iir_playing <= iir_playing << 1;
 
       // 48khz * 64
       audgen_lrck_cnt <= audgen_lrck_cnt + 1'b1;
-      if(audgen_lrck_cnt == 31) begin
-          // switch channels
-          audgen_lrck <= ~audgen_lrck;
 
+      if(audgen_lrck_cnt == 15) begin // End of data
+        if (audgen_lrck) begin // Second channel
+          iir_clk <= 0;
+        end else begin
+          iir_clk <= 1;
+        end
+      end
+
+      if(audgen_lrck_cnt == 30) begin // Prepare data for end of frame
           if (audgen_osc < square_alternate) begin
             audgen_osc <= audgen_osc + 1;
           end else begin
@@ -775,6 +822,16 @@ module core_top (
             end
           end
       end 
+      if (audgen_lrck_cnt == 31) begin
+        // switch channels
+        audgen_lrck <= ~audgen_lrck;
+
+        if (filter_effective) begin
+          iir_playing <= iir_out;
+        end else begin
+          iir_playing <= iir_in;
+        end
+      end
   end
 
   ///////////////////////////////////////////////
